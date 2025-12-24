@@ -107,6 +107,7 @@ custom_stocks = [
     "KOTAKBANK", "LT", "ASIANPAINT", "AXISBANK", "MARUTI",
     "HCLTECH", "WIPRO", "TATAMOTORS", "SUNPHARMA", "TITAN",
     "ADANIPORTS", "ULTRACEMCO", "NESTLEIND", "POWERGRID", "NTPC",
+    "MUTHOOTMF.NS", "MUTHOOTFIN.NS",
     "DMCC.NS", "PARAS.NS", "GVPTECH.NS", "GSFC.NS", "GNFC.NS",
     "GIPCL.NS", "GMDCLTD.NS", "KOHINOOR.NS", "DIVGIITTS.NS", "ASIANHOTNR.NS",
     "AHLEAST.NS", "BLUECOAST.NS", "ALPHAGEO.NS", "JPASSOCIAT.NS", "JPPOWER.NS",
@@ -207,6 +208,204 @@ async def get_market_feed(current_user: str = Depends(get_current_user)):
     cache_market_feed(stocks_data)
     
     return {"stocks": stocks_data, "cached": False}
+
+# All available NSE stock symbols for search (used as fallback cache only)
+ALL_STOCK_SYMBOLS = list(set(POPULAR_STOCKS + custom_stocks))
+
+# Search cache - stores recent search results (TTL: 5 minutes)
+search_cache = {}
+SEARCH_CACHE_TTL = 300  # 5 minutes
+
+
+def get_cached_search(query: str):
+    """Get cached search results if available and not expired"""
+    cache_key = query.upper().strip()
+    if cache_key in search_cache:
+        cached_data, timestamp = search_cache[cache_key]
+        if (datetime.utcnow() - timestamp).total_seconds() < SEARCH_CACHE_TTL:
+            return cached_data
+    return None
+
+
+def cache_search_results(query: str, results: list):
+    """Cache search results"""
+    cache_key = query.upper().strip()
+    search_cache[cache_key] = (results, datetime.utcnow())
+    # Limit cache size
+    if len(search_cache) > 500:
+        # Remove oldest entries
+        oldest_keys = sorted(search_cache.keys(), key=lambda k: search_cache[k][1])[:100]
+        for key in oldest_keys:
+            del search_cache[key]
+
+
+async def search_yahoo_finance(query: str) -> list:
+    """
+    Search stocks using Yahoo Finance search API.
+    This is the PRIMARY search source - supports partial, prefix, and fuzzy matching.
+    """
+    import httpx
+
+    url = "https://query1.finance.yahoo.com/v1/finance/search"
+    params = {
+        "q": query,
+        "quotesCount": 15,
+        "newsCount": 0,
+        "listsCount": 0,
+        "enableFuzzyQuery": True,
+        "quotesQueryId": "tss_match_phrase_query",
+    }
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            response = await client.get(url, params=params, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+
+            results = []
+            quotes = data.get("quotes", [])
+
+            for quote in quotes:
+                symbol = quote.get("symbol", "")
+                name = quote.get("shortname") or quote.get("longname") or ""
+                exchange = quote.get("exchange", "")
+                quote_type = quote.get("quoteType", "")
+
+                # Filter for Indian stocks (NSE/BSE) or include all equity types
+                is_indian = symbol.endswith(".NS") or symbol.endswith(".BO")
+                is_equity = quote_type in ["EQUITY", "ETF", "MUTUALFUND"]
+
+                # Prioritize Indian stocks but include others
+                if is_indian or is_equity:
+                    # Determine exchange badge
+                    if symbol.endswith(".NS"):
+                        exchange_badge = "NSE"
+                    elif symbol.endswith(".BO"):
+                        exchange_badge = "BSE"
+                    else:
+                        exchange_badge = exchange[:3].upper() if exchange else "US"
+
+                    results.append(
+                        {
+                            "symbol": symbol,
+                            "name": name,
+                            "exchange": exchange_badge,
+                            "type": quote_type,
+                            "isIndian": is_indian,
+                        }
+                    )
+
+            # Sort: Indian stocks first, then by relevance (order from Yahoo)
+            results.sort(key=lambda x: (0 if x["isIndian"] else 1))
+
+            return results[:12]
+
+    except Exception as e:
+        print(f"Yahoo Finance search error: {e}")
+        return []
+
+
+def rank_search_results(results: list, query: str) -> list:
+    """
+    Rank search results with smart priority:
+    1. Symbol starts with query (highest)
+    2. Symbol contains query
+    3. Company name starts with query
+    4. Company name contains query
+    """
+    query_upper = query.upper().strip()
+
+    def get_score(item):
+        symbol = item["symbol"].upper().replace(".NS", "").replace(".BO", "")
+        name = item["name"].upper()
+
+        # Symbol exact match
+        if symbol == query_upper:
+            return 100
+        # Symbol starts with query
+        if symbol.startswith(query_upper):
+            return 90
+        # Symbol contains query
+        if query_upper in symbol:
+            return 80
+        # Name starts with query
+        if name.startswith(query_upper):
+            return 70
+        # Name contains query (word boundary)
+        words = name.split()
+        for word in words:
+            if word.startswith(query_upper):
+                return 65
+        # Name contains query anywhere
+        if query_upper in name:
+            return 60
+        return 50  # Default score for Yahoo results
+
+    for item in results:
+        item["score"] = get_score(item)
+
+    # Sort by score (highest first), then Indian stocks first
+    results.sort(key=lambda x: (-x["score"], 0 if x.get("isIndian") else 1, x["symbol"]))
+
+    return results
+
+
+@app.get("/stocks/search")
+async def search_stocks(q: str, current_user: str = Depends(get_current_user)):
+    """
+    🔍 LIVE STOCK SEARCH using Yahoo Finance API
+    
+    Features:
+    - Partial matching: NYK → NYKAA
+    - Prefix matching: MUTHOOT → MUTHOOTMF  
+    - Fuzzy matching: Built into Yahoo Finance
+    - Searches both symbol AND company name
+    - Case-insensitive
+    - Returns results for 2+ characters
+    
+    This is a COMPLETE REDESIGN - no longer uses static stock list!
+    """
+    if not q or len(q) < 2:
+        return {"results": [], "query": q, "source": "none"}
+
+    query = q.strip()
+
+    # Check cache first
+    cached = get_cached_search(query)
+    if cached:
+        return {"results": cached, "query": query, "source": "cache"}
+
+    # Search Yahoo Finance (PRIMARY SOURCE)
+    yahoo_results = await search_yahoo_finance(query)
+
+    if yahoo_results:
+        # Rank results with smart priority
+        ranked_results = rank_search_results(yahoo_results, query)
+
+        # Build final response
+        final_results = []
+        for r in ranked_results[:10]:
+            final_results.append(
+                {
+                    "symbol": r["symbol"],
+                    "name": r["name"],
+                    "exchange": r.get("exchange", "NSE"),
+                    "matchType": "symbol"
+                    if query.upper() in r["symbol"].upper()
+                    else "name",
+                }
+            )
+
+        # Cache results
+        cache_search_results(query, final_results)
+
+        return {"results": final_results, "query": query, "source": "yahoo"}
+
+    # Fallback: No results from Yahoo
+    return {"results": [], "query": query, "source": "yahoo"}
 
 # Auth Routes
 @app.post("/auth/register")

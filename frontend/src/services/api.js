@@ -31,6 +31,7 @@ export const stocks = {
   getChart: (symbol, period = '6mo') => api.get(`/chart/${symbol}?period=${period}`),
   getComparison: (symbol) => api.get(`/comparison/${symbol}`),
   getMarketFeed: () => api.get('/market-feed'),
+  search: (query) => api.get(`/stocks/search?q=${encodeURIComponent(query)}`),
 }
 
 export const watchlist = {

@@ -378,6 +378,18 @@ function StockDetail() {
           <div className="disclaimer-box">
             ⚠️ Prediction is based on technical analysis, not financial advice.
           </div>
+          
+          {/* Technical Analysis Explanation */}
+          <div className="analysis-explanation">
+            <h4>📈 Understanding the indicators:</h4>
+            <ul>
+              <li><strong>Score (0-100):</strong> Overall strength. ≥70 = High, 40-69 = Medium, &lt;40 = Low probability</li>
+              <li><strong>RSI:</strong> Momentum indicator. &lt;30 = Oversold (buy signal), &gt;70 = Overbought (sell signal)</li>
+              <li><strong>ADX:</strong> Trend strength. &lt;25 = Weak trend, &gt;25 = Strong trend</li>
+              <li><strong>Volume Ratio:</strong> Current vs average volume. &gt;1.5x = High interest</li>
+              <li><strong>MACD:</strong> Bullish = Upward momentum, Bearish = Downward momentum</li>
+            </ul>
+          </div>
         </div>
 
         {/* Projection Card */}
@@ -402,6 +414,23 @@ function StockDetail() {
           <p className="projection-note">{projection?.basis}</p>
           <div className="confidence-badge">
             Confidence: {projection?.confidence}
+          </div>
+          
+          {/* Explanation Note */}
+          <div className="projection-explanation">
+            <h4>How to read this projection:</h4>
+            <ul>
+              <li><strong>Low:</strong> Pessimistic estimate - price if market conditions worsen</li>
+              <li><strong>Target:</strong> Most likely price based on current trend momentum</li>
+              <li><strong>High:</strong> Optimistic estimate - price if bullish momentum continues</li>
+            </ul>
+            <p className="explanation-method">
+              <strong>Calculation Method:</strong> Uses EMA (Exponential Moving Average) to identify trend direction 
+              and ATR (Average True Range) to measure volatility and set the price range.
+            </p>
+            <p className="explanation-disclaimer">
+              💡 Higher confidence = stronger trend signals. This is a statistical estimate, not investment advice.
+            </p>
           </div>
         </div>
       </div>
@@ -433,6 +462,19 @@ function StockDetail() {
                 </div>
               </div>
             ))}
+          </div>
+          
+          {/* Comparison Explanation Note */}
+          <div className="comparison-explanation">
+            <h4>📊 How to read this comparison:</h4>
+            <div className="explanation-content">
+              <p><strong>1D, 1M, 3M, 1Y</strong> = Returns over 1 Day, 1 Month, 3 Months, and 1 Year</p>
+              <p><strong>Green %</strong> = Positive return (profit) | <strong>Red %</strong> = Negative return (loss)</p>
+              <p><strong>✓ Outperforming</strong> = Stock beat NIFTY 50 | <strong>✗ Underperforming</strong> = Stock lagged behind NIFTY 50</p>
+            </div>
+            <p className="explanation-tip">
+              💡 If a stock consistently underperforms NIFTY 50, consider if an index fund might be a better choice.
+            </p>
           </div>
         </div>
       )}

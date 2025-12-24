@@ -91,22 +91,22 @@ function Layout({ children, setAuth }) {
           <div className="footer-section">
             <h4>Resources</h4>
             <ul className="footer-links">
-              <li><a href="#" onClick={(e) => e.preventDefault()}>Documentation</a></li>
-              <li><a href="#" onClick={(e) => e.preventDefault()}>API Reference</a></li>
-              <li><a href="#" onClick={(e) => e.preventDefault()}>Support</a></li>
+              <li><a href="https://www.investopedia.com/terms/t/technicalanalysis.asp" target="_blank" rel="noopener noreferrer">Documentation</a></li>
+              <li><a href="https://www.nseindia.com/market-data/live-equity-market" target="_blank" rel="noopener noreferrer">NSE Market Data</a></li>
+              <li><a href="mailto:support@stockanalysis.com">Support</a></li>
             </ul>
           </div>
 
           <div className="footer-section">
             <h4>Connect</h4>
             <div className="social-links">
-              <a href="#" onClick={(e) => e.preventDefault()} className="social-link">
+              <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="social-link" title="GitHub">
                 <Github size={20} />
               </a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="social-link">
+              <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="social-link" title="Twitter">
                 <Twitter size={20} />
               </a>
-              <a href="#" onClick={(e) => e.preventDefault()} className="social-link">
+              <a href="mailto:contact@stockanalysis.com" className="social-link" title="Email">
                 <Mail size={20} />
               </a>
             </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { stocks, watchlist } from '../services/api'
 import { Search, Plus, TrendingUp, TrendingDown, Activity } from 'lucide-react'
@@ -6,8 +6,28 @@ import { LineChart, Line, ResponsiveContainer } from 'recharts'
 import Toast from '../components/Toast'
 import './Dashboard.css'
 
+// Helper function to highlight matching text
+function HighlightText({ text, query }) {
+  if (!query || !text) return <>{text}</>
+  
+  const queryLower = query.toLowerCase()
+  const textLower = text.toLowerCase()
+  const index = textLower.indexOf(queryLower)
+  
+  if (index === -1) return <>{text}</>
+  
+  return (
+    <>
+      {text.slice(0, index)}
+      <mark className="highlight">{text.slice(index, index + query.length)}</mark>
+      {text.slice(index + query.length)}
+    </>
+  )
+}
+
 function Dashboard() {
   const [symbol, setSymbol] = useState('')
+  const [searchQuery, setSearchQuery] = useState('') // Track the actual search query for highlighting
   const [stockData, setStockData] = useState(null)
   const [marketFeed, setMarketFeed] = useState([])
   const [loading, setLoading] = useState(false)
@@ -17,6 +37,11 @@ function Dashboard() {
   const [showWatchlistModal, setShowWatchlistModal] = useState(false)
   const [selectedStock, setSelectedStock] = useState('')
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
+  const [searchResults, setSearchResults] = useState([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [selectedIndex, setSelectedIndex] = useState(-1)
+  const [isSearching, setIsSearching] = useState(false)
+  const searchRef = useRef(null)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -26,6 +51,47 @@ function Dashboard() {
     const interval = setInterval(loadMarketFeed, 300000)
     return () => clearInterval(interval)
   }, [])
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowSuggestions(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  // Search stocks as user types - using Yahoo Finance API
+  useEffect(() => {
+    const searchStocks = async () => {
+      if (symbol.length < 2) {
+        setSearchResults([])
+        setShowSuggestions(false)
+        setIsSearching(false)
+        return
+      }
+
+      setIsSearching(true)
+      setSearchQuery(symbol) // Store query for highlighting
+
+      try {
+        const response = await stocks.search(symbol)
+        setSearchResults(response.data.results || [])
+        setShowSuggestions(true)
+        setSelectedIndex(-1)
+      } catch (err) {
+        console.error('Search failed', err)
+        setSearchResults([])
+      } finally {
+        setIsSearching(false)
+      }
+    }
+
+    const debounceTimer = setTimeout(searchStocks, 300) // 300ms debounce for Yahoo API
+    return () => clearTimeout(debounceTimer)
+  }, [symbol])
 
   const loadWatchlists = async () => {
     // Load cached watchlists instantly
@@ -91,6 +157,7 @@ function Dashboard() {
     
     setLoading(true)
     setError('')
+    setShowSuggestions(false)
     
     try {
       const response = await stocks.getPrice(symbol.toUpperCase())
@@ -100,6 +167,45 @@ function Dashboard() {
       setStockData(null)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleSuggestionClick = (suggestion) => {
+    setSymbol(suggestion)
+    setShowSuggestions(false)
+    // Trigger search with the selected symbol
+    searchStock(suggestion)
+  }
+
+  const searchStock = async (stockSymbol) => {
+    setLoading(true)
+    setError('')
+    
+    try {
+      const response = await stocks.getPrice(stockSymbol.toUpperCase())
+      setStockData(response.data)
+    } catch (err) {
+      setError('Stock not found')
+      setStockData(null)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleKeyDown = (e) => {
+    if (!showSuggestions || searchResults.length === 0) return
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSelectedIndex(prev => (prev < searchResults.length - 1 ? prev + 1 : prev))
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSelectedIndex(prev => (prev > 0 ? prev - 1 : -1))
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      e.preventDefault()
+      handleSuggestionClick(searchResults[selectedIndex])
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false)
     }
   }
 
@@ -217,15 +323,74 @@ function Dashboard() {
       )}
       <h1>Market Dashboard</h1>
       
-      <form onSubmit={handleSearch} className="search-form">
-        <div className="search-input-group">
-          <Search size={20} />
-          <input
-            type="text"
-            placeholder="Search NSE stock symbol (e.g., RELIANCE, TCS)"
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-          />
+      <form onSubmit={handleSearch} className="search-form" ref={searchRef}>
+        <div className="search-input-wrapper">
+          <div className="search-input-group">
+            <Search size={20} />
+            <input
+              type="text"
+              placeholder="Search stocks... (e.g., NYKAA, MUTHOOT, TCS)"
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onFocus={() => symbol.length >= 2 && searchResults.length > 0 && setShowSuggestions(true)}
+            />
+          </div>
+          
+          {showSuggestions && searchResults.length > 0 && (
+            <div className="search-suggestions">
+              {searchResults.map((result, index) => (
+                <div
+                  key={result.symbol}
+                  className={`suggestion-item ${index === selectedIndex ? 'selected' : ''}`}
+                  onClick={() => handleSuggestionClick(result.symbol)}
+                  onMouseEnter={() => setSelectedIndex(index)}
+                >
+                  <div className="suggestion-main">
+                    <span className="suggestion-symbol">
+                      <HighlightText text={result.symbol.replace('.NS', '').replace('.BO', '')} query={searchQuery} />
+                    </span>
+                    {result.name && result.name !== result.symbol && (
+                      <span className="suggestion-name">
+                        <HighlightText text={result.name} query={searchQuery} />
+                      </span>
+                    )}
+                  </div>
+                  <div className="suggestion-meta">
+                    {result.matchType === 'name' && <span className="match-badge">Name match</span>}
+                    <span className={`suggestion-exchange ${result.exchange === 'NSE' ? 'nse' : result.exchange === 'BSE' ? 'bse' : ''}`}>
+                      {result.exchange || 'NSE'}
+                    </span>
+                    <button
+                      className="suggestion-add-btn"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleAddToWatchlist(result.symbol)
+                        setShowSuggestions(false)
+                      }}
+                      title="Add to watchlist"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {showSuggestions && searchResults.length === 0 && symbol.length >= 2 && !isSearching && (
+            <div className="search-suggestions">
+              <div className="suggestion-item no-results">
+                <span>No stocks found for "{symbol}"</span>
+              </div>
+            </div>
+          )}
+          {isSearching && symbol.length >= 1 && (
+            <div className="search-suggestions">
+              <div className="suggestion-item searching">
+                <span>Searching...</span>
+              </div>
+            </div>
+          )}
         </div>
         <button type="submit" disabled={loading}>
           {loading ? 'Searching...' : 'Search'}
