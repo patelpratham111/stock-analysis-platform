@@ -583,3 +583,222 @@
     opacity: 1;
   }
 }
+
+/* ==================== MOBILE RESPONSIVE ==================== */
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .market-stock-card {
+    gap: 1.5rem;
+  }
+
+  .sparkline-container {
+    width: 150px;
+  }
+
+  .stock-price-row .price {
+    min-width: 100px;
+    font-size: 1.25rem;
+  }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .dashboard h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .search-form {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .search-form > button {
+    width: 100%;
+    padding: 0.875rem;
+  }
+
+  .search-input-group {
+    padding: 0.875rem 1rem;
+  }
+
+  .search-suggestions {
+    max-height: 60vh;
+  }
+
+  .suggestion-item {
+    padding: 0.75rem;
+  }
+
+  .suggestion-name {
+    max-width: 180px;
+  }
+
+  .match-badge {
+    display: none;
+  }
+
+  /* Stock Card */
+  .stock-card {
+    padding: 1.25rem;
+  }
+
+  .stock-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .stock-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .add-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stock-price {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .price {
+    font-size: 2rem;
+  }
+
+  .stock-info {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  /* Market Feed */
+  .market-feed-section {
+    margin-top: 2rem;
+  }
+
+  .section-header {
+    flex-wrap: wrap;
+  }
+
+  .section-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .market-stock-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+    padding-top: 3rem;
+    min-height: auto;
+  }
+
+  .market-stock-card:hover {
+    transform: none;
+  }
+
+  .stock-card-header {
+    min-width: auto;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .stock-price-section {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .stock-price-row {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .stock-price-row .price {
+    font-size: 1.375rem;
+    min-width: auto;
+  }
+
+  .change-badge {
+    min-width: auto;
+    padding: 0.375rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+
+  .sparkline-container {
+    width: 100%;
+    height: 40px;
+  }
+
+  .add-to-watchlist-btn {
+    opacity: 1;
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    margin-left: 0;
+    padding: 0.625rem 0.875rem;
+    z-index: 1;
+  }
+
+  /* Modal */
+  .modal-content {
+    padding: 1.5rem;
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .modal-content h2 {
+    font-size: 1.25rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+
+  .watchlist-option {
+    padding: 0.875rem;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 480px) {
+  .dashboard h1 {
+    font-size: 1.25rem;
+  }
+
+  .suggestion-symbol {
+    font-size: 0.875rem;
+  }
+
+  .suggestion-name {
+    font-size: 0.75rem;
+    max-width: 140px;
+  }
+
+  .suggestion-exchange {
+    font-size: 0.625rem;
+    padding: 0.2rem 0.375rem;
+  }
+
+  .stock-info {
+    grid-template-columns: 1fr;
+  }
+
+  .stock-price-row .price {
+    font-size: 1.25rem;
+  }
+
+  .change-badge {
+    font-size: 0.75rem;
+  }
+}

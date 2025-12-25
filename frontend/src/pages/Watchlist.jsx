@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { watchlist } from '../services/api'
-import { Trash2, TrendingUp, Plus, FolderPlus, RotateCcw, Edit2, Check, X } from 'lucide-react'
+import { Trash2, TrendingUp, Plus, FolderPlus, RotateCcw, Edit2, Check, X, ChevronLeft, ChevronDown } from 'lucide-react'
 import Toast from '../components/Toast'
 import './Watchlist.css'
 
@@ -20,6 +20,7 @@ function Watchlist() {
   const [editingId, setEditingId] = useState(null)
   const [editingName, setEditingName] = useState('')
   const [toast, setToast] = useState({ show: false, message: '', type: 'success' })
+  const [mobileView, setMobileView] = useState('list') // 'list' or 'stocks'
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -66,9 +67,16 @@ function Watchlist() {
       setSelectedWatchlist(response.data)
       setHasMore(response.data.has_more)
       setCurrentOffset(offset + response.data.loaded)
+      
+      // Switch to stocks view on mobile
+      setMobileView('stocks')
     } catch (err) {
       console.error('Failed to load watchlist', err)
     }
+  }
+  
+  const handleBackToList = () => {
+    setMobileView('list')
   }
   
   const handleLoadMore = async () => {
@@ -232,10 +240,99 @@ function Watchlist() {
         <h1>Watchlists</h1>
         <button onClick={() => setShowCreateModal(true)} className="create-btn">
           <FolderPlus size={18} />
-          New Watchlist
+          <span className="btn-text">New Watchlist</span>
         </button>
       </div>
 
+      {/* Mobile View */}
+      <div className="watchlist-mobile">
+        {mobileView === 'list' ? (
+          <div className="mobile-watchlist-selector">
+            <h3>Select a Watchlist</h3>
+            <div className="mobile-watchlist-list">
+              {watchlists.map(wl => (
+                <div
+                  key={wl.id}
+                  className={`mobile-watchlist-item ${selectedWatchlist?.id === wl.id ? 'active' : ''}`}
+                  onClick={() => selectWatchlist(wl.id)}
+                >
+                  <div className="mobile-watchlist-info">
+                    <span className="mobile-watchlist-name">
+                      {wl.name}
+                      {wl.is_default && <span className="default-badge">Default</span>}
+                    </span>
+                    <span className="mobile-stock-count">{wl.stock_count} stocks</span>
+                  </div>
+                  <ChevronDown size={20} className="mobile-chevron" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="mobile-stocks-view">
+            <button className="mobile-back-btn" onClick={handleBackToList}>
+              <ChevronLeft size={20} />
+              <span>All Watchlists</span>
+            </button>
+            
+            <div className="mobile-selected-header">
+              <h2>{selectedWatchlist?.name}</h2>
+              {selectedWatchlist?.is_default && (
+                <button onClick={handleResetDefault} className="reset-btn-small">
+                  <RotateCcw size={14} />
+                </button>
+              )}
+            </div>
+
+            {stocks.length === 0 ? (
+              <div className="empty-state">
+                <TrendingUp size={48} />
+                <p>This watchlist is empty</p>
+              </div>
+            ) : (
+              <>
+                <div className="watchlist-grid">
+                  {stocks.map((stock, index) => (
+                    <div key={`${stock.symbol}-${index}`} className="watchlist-card">
+                      <div className="card-header">
+                        <h3>{stock.symbol}</h3>
+                        <button onClick={() => handleRemove(stock.symbol)} className="remove-btn">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                      
+                      <div className="card-price">
+                        <span className="price">₹{stock.price}</span>
+                        <span className={stock.change >= 0 ? 'positive' : 'negative'}>
+                          {stock.change >= 0 ? '+' : ''}{stock.change_percent}%
+                        </span>
+                      </div>
+                      
+                      <button onClick={() => handleAnalyze(stock.symbol)} className="analyze-btn-small">
+                        Analyze
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                
+                {hasMore && (
+                  <div className="load-more-container">
+                    <button 
+                      onClick={handleLoadMore} 
+                      className="load-more-btn"
+                      disabled={loadingMore}
+                    >
+                      {loadingMore ? 'Loading...' : `Load More (${selectedWatchlist.total_stocks - stocks.length} left)`}
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop View */}
       <div className="watchlist-layout">
         <div className="watchlist-sidebar">
           <h3>Your Watchlists</h3>

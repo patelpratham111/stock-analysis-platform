@@ -55,9 +55,9 @@ function Layout({ children, setAuth }) {
               <span>{userName}</span>
             </div>
           )}
-          <button onClick={handleLogout} className="logout-btn">
+          <button onClick={handleLogout} className="logout-btn" title="Logout">
             <LogOut size={18} />
-            Logout
+            <span>Logout</span>
           </button>
         </div>
       </nav>

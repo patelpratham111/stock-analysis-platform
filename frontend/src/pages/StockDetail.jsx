@@ -22,6 +22,7 @@ function StockDetail() {
   const [comparison, setComparison] = useState(null)
   const [selectedPeriod, setSelectedPeriod] = useState('6mo')
   const [loading, setLoading] = useState(true)
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
   
   // Watchlist modal state
   const [showWatchlistModal, setShowWatchlistModal] = useState(false)
@@ -38,6 +39,15 @@ function StockDetail() {
     { label: '1Y', value: '1y' },
     { label: '5Y', value: '5y' }
   ]
+
+  // Handle window resize for responsive charts
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   useEffect(() => {
     loadAllData()
@@ -293,44 +303,48 @@ function StockDetail() {
           </div>
         </div>
         
-        <ResponsiveContainer width="100%" height={400}>
-          <AreaChart data={chartData}>
-            <defs>
-              <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#00ff00" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#00ff00" stopOpacity={0}/>
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-            <XAxis dataKey="date" stroke="#888" />
-            <YAxis stroke="#888" domain={['auto', 'auto']} />
-            <Tooltip 
-              contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '4px' }}
-              labelStyle={{ color: '#fff' }}
-            />
-            <Area 
-              type="monotone" 
-              dataKey="close" 
-              stroke="#00ff00" 
-              fillOpacity={1}
-              fill="url(#colorPrice)"
-              strokeWidth={2}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+        <div className="chart-wrapper">
+          <ResponsiveContainer width="100%" height={isMobile ? 200 : 300}>
+            <AreaChart data={chartData}>
+              <defs>
+                <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#00ff00" stopOpacity={0.3}/>
+                  <stop offset="95%" stopColor="#00ff00" stopOpacity={0}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#333" />
+              <XAxis dataKey="date" stroke="#888" tick={{ fontSize: isMobile ? 8 : 10 }} interval="preserveStartEnd" />
+              <YAxis stroke="#888" domain={['auto', 'auto']} tick={{ fontSize: isMobile ? 8 : 10 }} width={isMobile ? 40 : 50} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#111', border: '1px solid #333', borderRadius: '4px', fontSize: '12px' }}
+                labelStyle={{ color: '#fff' }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="close" 
+                stroke="#00ff00" 
+                fillOpacity={1}
+                fill="url(#colorPrice)"
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
 
         {/* Volume Chart */}
-        <ResponsiveContainer width="100%" height={100}>
-          <BarChart data={chartData}>
-            <XAxis dataKey="date" hide />
-            <YAxis hide />
-            <Tooltip 
-              contentStyle={{ backgroundColor: '#111', border: '1px solid #333' }}
-              labelStyle={{ color: '#fff' }}
-            />
-            <Bar dataKey="volume" fill="#666" />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="volume-chart-wrapper">
+          <ResponsiveContainer width="100%" height={isMobile ? 40 : 60}>
+            <BarChart data={chartData}>
+              <XAxis dataKey="date" hide />
+              <YAxis hide />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#111', border: '1px solid #333', fontSize: '12px' }}
+                labelStyle={{ color: '#fff' }}
+              />
+              <Bar dataKey="volume" fill="#666" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Analysis & Prediction Section */}

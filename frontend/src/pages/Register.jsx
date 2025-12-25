@@ -10,38 +10,126 @@ function Register({ setAuth }) {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: '', checks: {} })
   const navigate = useNavigate()
+
+  // Password strength checker
+  const checkPasswordStrength = (pwd) => {
+    const checks = {
+      length: pwd.length >= 8,
+      uppercase: /[A-Z]/.test(pwd),
+      lowercase: /[a-z]/.test(pwd),
+      number: /\d/.test(pwd),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(pwd)
+    }
+    
+    const score = Object.values(checks).filter(Boolean).length
+    let label = ''
+    if (score === 0) label = ''
+    else if (score <= 2) label = 'Weak'
+    else if (score <= 3) label = 'Fair'
+    else if (score <= 4) label = 'Good'
+    else label = 'Strong'
+    
+    setPasswordStrength({ score, label, checks })
+  }
+
+  const handlePasswordChange = (e) => {
+    const pwd = e.target.value
+    setPassword(pwd)
+    checkPasswordStrength(pwd)
+  }
+
+  const validateForm = () => {
+    // Name validation
+    if (name.trim().length < 2) {
+      setError('Name must be at least 2 characters')
+      return false
+    }
+    if (!/^[a-zA-Z\s]+$/.test(name)) {
+      setError('Name can only contain letters and spaces')
+      return false
+    }
+
+    // Email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address')
+      return false
+    }
+    if (email.split('@')[0].length < 3) {
+      setError('Email username must be at least 3 characters')
+      return false
+    }
+
+    // Password validation
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters')
+      return false
+    }
+    if (!/[A-Z]/.test(password)) {
+      setError('Password must contain at least one uppercase letter')
+      return false
+    }
+    if (!/[a-z]/.test(password)) {
+      setError('Password must contain at least one lowercase letter')
+      return false
+    }
+    if (!/\d/.test(password)) {
+      setError('Password must contain at least one number')
+      return false
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      setError('Password must contain at least one special character (!@#$%^&*)')
+      return false
+    }
+
+    // Confirm password
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return false
+    }
+
+    return true
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
-
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters')
+    if (!validateForm()) {
       return
     }
 
     setLoading(true)
 
     try {
-      const response = await auth.register({ name, email, password })
+      const response = await auth.register({ name: name.trim(), email: email.toLowerCase(), password })
       localStorage.setItem('token', response.data.access_token)
       setAuth(true)
       navigate('/')
     } catch (err) {
-      setError(err.response?.data?.detail || 'Registration failed. Please try again.')
+      // Parse validation errors from backend
+      const detail = err.response?.data?.detail
+      if (Array.isArray(detail)) {
+        // Pydantic validation errors
+        const messages = detail.map(e => e.msg).join('. ')
+        setError(messages)
+      } else {
+        setError(detail || 'Registration failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  const handleGoogleSignup = () => {
-    alert('Google Sign-Up integration coming soon')
+  const handleGoogleSignup = async () => {
+    try {
+      const response = await auth.googleLogin()
+      window.location.href = response.data.auth_url
+    } catch (err) {
+      setError('Failed to initiate Google Sign-Up')
+    }
   }
 
   return (
@@ -96,12 +184,32 @@ function Register({ setAuth }) {
               <input
                 id="password"
                 type="password"
-                placeholder="Create a password (min. 6 characters)"
+                placeholder="Create a strong password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
                 required
                 autoComplete="new-password"
               />
+              {password && (
+                <div className="password-strength">
+                  <div className="strength-bar">
+                    <div 
+                      className={`strength-fill strength-${passwordStrength.score}`}
+                      style={{ width: `${(passwordStrength.score / 5) * 100}%` }}
+                    ></div>
+                  </div>
+                  <span className={`strength-label strength-${passwordStrength.score}`}>
+                    {passwordStrength.label}
+                  </span>
+                </div>
+              )}
+              <div className="password-requirements">
+                <span className={passwordStrength.checks.length ? 'met' : ''}>• 8+ characters</span>
+                <span className={passwordStrength.checks.uppercase ? 'met' : ''}>• Uppercase</span>
+                <span className={passwordStrength.checks.lowercase ? 'met' : ''}>• Lowercase</span>
+                <span className={passwordStrength.checks.number ? 'met' : ''}>• Number</span>
+                <span className={passwordStrength.checks.special ? 'met' : ''}>• Special (!@#$)</span>
+              </div>
             </div>
 
             <div className="form-field">
@@ -115,6 +223,9 @@ function Register({ setAuth }) {
                 required
                 autoComplete="new-password"
               />
+              {confirmPassword && password !== confirmPassword && (
+                <span className="field-error">Passwords do not match</span>
+              )}
             </div>
 
             {error && (

@@ -895,6 +895,19 @@
 
 /* Responsive */
 @media (max-width: 768px) {
+  .compare h1 {
+    font-size: 1.5rem;
+  }
+
+  .analyze-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+  }
+
+  .analyze-subtitle {
+    font-size: 0.875rem;
+  }
+
   .analyze-controls {
     flex-direction: column;
     padding: 1.25rem;
@@ -905,6 +918,15 @@
     width: 100%;
     min-width: unset;
   }
+
+  .custom-dropdown {
+    min-width: unset;
+  }
+
+  .dropdown-trigger {
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+  }
   
   .run-analysis-btn {
     width: 100%;
@@ -914,14 +936,212 @@
   
   .initial-state {
     padding: 3rem 1.5rem;
-    min-height: 350px;
+    min-height: 300px;
   }
   
+  .initial-state svg {
+    width: 48px;
+    height: 48px;
+  }
+
   .initial-state h2 {
     font-size: 1.5rem;
+  }
+
+  .initial-state p {
+    font-size: 0.875rem;
+  }
+
+  .initial-hint {
+    font-size: 0.8125rem !important;
   }
   
   .threshold-info-box {
     padding: 1.25rem;
+  }
+
+  .threshold-info-box strong {
+    font-size: 0.9375rem;
+  }
+
+  .threshold-info-box p {
+    font-size: 0.8125rem;
+  }
+
+  .threshold-examples {
+    font-size: 0.75rem;
+  }
+
+  /* Analysis Card Mobile */
+  .analysis-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem;
+  }
+
+  .analysis-card-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .score-badge-container {
+    gap: 0.5rem;
+  }
+
+  .score-badge {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .trend-label {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.625rem;
+  }
+
+  .rs-signal {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.5625rem;
+  }
+
+  .view-details-btn {
+    width: 100%;
+    padding: 0.875rem 1.5rem;
+    font-size: 0.9375rem;
+    min-width: unset;
+  }
+
+  /* Metrics Grid - 2 columns on mobile */
+  .analysis-metrics {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metric {
+    padding: 1rem;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  .metric:nth-child(odd) {
+    border-right: 1px solid #1a1a1a;
+  }
+
+  .metric:nth-child(even) {
+    border-right: none;
+  }
+
+  .metric:nth-last-child(-n+2) {
+    border-bottom: none;
+  }
+
+  .metric-label {
+    font-size: 0.625rem;
+  }
+
+  .metric-value {
+    font-size: 1.125rem;
+  }
+
+  /* Mini Chart */
+  .mini-chart {
+    padding: 1.25rem;
+  }
+
+  .mini-chart h3 {
+    font-size: 0.625rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Projection Preview */
+  .projection-preview {
+    padding: 1.25rem;
+  }
+
+  .projection-preview h3 {
+    font-size: 0.625rem;
+    margin-bottom: 1rem;
+  }
+
+  .projection-range-mini {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .range-mini-item {
+    padding: 0.75rem 0.5rem;
+    text-align: center;
+    align-items: center;
+  }
+
+  .range-mini-label {
+    font-size: 0.5625rem;
+  }
+
+  .range-mini-value {
+    font-size: 1rem;
+  }
+
+  .projection-note {
+    font-size: 0.75rem;
+  }
+
+  /* Empty/Error States */
+  .empty-analysis,
+  .error-state {
+    padding: 3rem 1.5rem;
+  }
+
+  .empty-analysis svg,
+  .error-state svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .empty-analysis h2,
+  .error-state h2 {
+    font-size: 1.125rem;
+  }
+
+  .empty-analysis p,
+  .error-state p {
+    font-size: 0.875rem;
+  }
+
+  .analyzing-banner {
+    font-size: 0.875rem;
+    padding: 0.875rem;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 400px) {
+  .compare h1 {
+    font-size: 1.25rem;
+  }
+
+  .analyze-controls {
+    padding: 1rem;
+  }
+
+  .analysis-card-header {
+    padding: 1rem;
+  }
+
+  .analysis-card-header h2 {
+    font-size: 1.125rem;
+  }
+
+  .metric {
+    padding: 0.75rem;
+  }
+
+  .metric-value {
+    font-size: 1rem;
+  }
+
+  .range-mini-value {
+    font-size: 0.875rem;
+  }
+
+  .view-details-btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
   }
 }

@@ -729,6 +729,271 @@
   }
 }
 
+/* ==================== MOBILE WATCHLIST UI ==================== */
+
+/* Hide mobile view on desktop */
+.watchlist-mobile {
+  display: none;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  /* Hide desktop layout on mobile */
+  .watchlist-layout {
+    display: none;
+  }
+
+  /* Show mobile view */
+  .watchlist-mobile {
+    display: block;
+    min-height: calc(100vh - 120px); /* Full height minus navbar */
+  }
+
+  .watchlist-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .watchlist-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .create-btn {
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+
+  .create-btn .btn-text {
+    display: none;
+  }
+
+  /* Mobile Watchlist Selector */
+  .mobile-watchlist-selector {
+    min-height: calc(100vh - 180px);
+  }
+
+  .mobile-watchlist-selector h3 {
+    font-size: 0.875rem;
+    color: #888888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+  }
+
+  .mobile-watchlist-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .mobile-watchlist-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    background-color: #111111;
+    border: 1px solid #333333;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .mobile-watchlist-item:hover,
+  .mobile-watchlist-item:active {
+    background-color: #1a1a1a;
+    border-color: #444444;
+  }
+
+  .mobile-watchlist-item.active {
+    border-color: #00ff00;
+    background-color: #0a1a0a;
+  }
+
+  .mobile-watchlist-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .mobile-watchlist-name {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .mobile-stock-count {
+    font-size: 0.8125rem;
+    color: #666666;
+  }
+
+  .mobile-chevron {
+    color: #666666;
+    transform: rotate(-90deg);
+  }
+
+  /* Mobile Stocks View */
+  .mobile-stocks-view {
+    animation: slideIn 0.2s ease;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .mobile-back-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    background: none;
+    color: #888888;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+  }
+
+  .mobile-back-btn:hover {
+    color: #ffffff;
+  }
+
+  .mobile-selected-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+
+  .mobile-selected-header h2 {
+    font-size: 1.25rem;
+    margin: 0;
+  }
+
+  .reset-btn-small {
+    padding: 0.5rem;
+    background-color: #222222;
+    color: #888888;
+    border-radius: 4px;
+  }
+
+  .reset-btn-small:hover {
+    background-color: #333333;
+    color: #ffffff;
+  }
+
+  /* Mobile Stock Cards */
+  .watchlist-grid {
+    gap: 0.625rem;
+  }
+
+  .watchlist-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .card-header {
+    width: 100%;
+    justify-content: space-between;
+    margin-bottom: 0;
+  }
+
+  .card-header h3 {
+    font-size: 1rem;
+  }
+
+  .card-price {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .card-price .price {
+    font-size: 1.125rem;
+  }
+
+  .analyze-btn-small {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  /* Mobile Load More */
+  .load-more-container {
+    padding: 1.5rem 0;
+  }
+
+  .load-more-btn {
+    width: 100%;
+    padding: 0.875rem;
+    font-size: 0.875rem;
+  }
+
+  /* Mobile Empty State */
+  .empty-state {
+    padding: 3rem 1.5rem;
+  }
+
+  .empty-state svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .empty-state p {
+    font-size: 0.9375rem;
+  }
+
+  /* Mobile Modal */
+  .modal-content {
+    width: 95%;
+    padding: 1.5rem;
+  }
+
+  .modal-content h2 {
+    font-size: 1.125rem;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .modal-actions button {
+    width: 100%;
+  }
+}
+
+/* Small Mobile */
+@media (max-width: 400px) {
+  .watchlist-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .mobile-watchlist-item {
+    padding: 0.875rem 1rem;
+  }
+
+  .mobile-watchlist-name {
+    font-size: 0.9375rem;
+  }
+
+  .card-price .price {
+    font-size: 1rem;
+  }
+
+  .card-price .positive,
+  .card-price .negative {
+    font-size: 0.8125rem;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
 /* Load More Button */
 .load-more-container {
   display: flex;
