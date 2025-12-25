@@ -604,6 +604,9 @@ async def google_callback(code: str, response: Response):
             # Generate JWT token
             jwt_token = create_access_token(data={"sub": email})
             
+            # Detect if running in production (check for HTTPS in frontend URL)
+            is_production = settings.FRONTEND_URL.startswith("https://")
+            
             # Redirect to frontend with success and set cookie
             from fastapi.responses import RedirectResponse
             redirect_url = f"{settings.FRONTEND_URL}/?auth=success"
@@ -615,8 +618,8 @@ async def google_callback(code: str, response: Response):
                 value=jwt_token,
                 httponly=True,
                 max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-                samesite="lax",
-                secure=False  # Set to True in production with HTTPS
+                samesite="none" if is_production else "lax",
+                secure=is_production
             )
             
             return redirect_response

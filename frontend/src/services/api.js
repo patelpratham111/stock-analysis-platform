@@ -1,9 +1,11 @@
 import axios from 'axios'
 
-// Use your computer's IP for mobile access, or localhost for desktop
-const API_URL = window.location.hostname === 'localhost' 
-  ? 'http://localhost:8000'
-  : `http://${window.location.hostname}:8000`
+// Production API URL from environment variable, fallback to localhost for development
+const API_URL = import.meta.env.VITE_API_URL || (
+  window.location.hostname === 'localhost' 
+    ? 'http://localhost:8000'
+    : `http://${window.location.hostname}:8000`
+)
 
 const api = axios.create({
   baseURL: API_URL,
