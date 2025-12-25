@@ -773,7 +773,7 @@ async def create_watchlist(watchlist: WatchlistCreate, current_user: str = Depen
     }
 
 @app.get("/watchlists/{watchlist_id}")
-async def get_watchlist(watchlist_id: str, current_user: str = Depends(get_current_user), limit: int = 20, offset: int = 0, minimal: bool = True):
+async def get_watchlist(watchlist_id: str, current_user: str = Depends(get_current_user), limit: int = 10, offset: int = 0, minimal: bool = True):
     """Get specific watchlist with stock prices (ULTRA-FAST with minimal data)"""
     from bson import ObjectId
     from concurrent.futures import ThreadPoolExecutor
@@ -829,8 +829,8 @@ async def get_watchlist(watchlist_id: str, current_user: str = Depends(get_curre
             pass
         return None
     
-    # Use ThreadPoolExecutor with 30 workers for maximum parallelism
-    with ThreadPoolExecutor(max_workers=30) as executor:
+    # Use ThreadPoolExecutor with 15 workers for faster parallel fetching
+    with ThreadPoolExecutor(max_workers=15) as executor:
         stocks_with_prices = list(filter(None, executor.map(fetch_stock_minimal_cached, stocks)))
     
     has_more = (offset + limit) < total_stocks

@@ -54,8 +54,8 @@ function Watchlist() {
     const offset = resetOffset ? 0 : currentOffset
     
     try {
-      // Load first batch of stocks with MINIMAL data (20 stocks)
-      const response = await watchlist.getById(id, 20, offset)
+      // Load first batch of stocks with MINIMAL data (10 stocks for faster load)
+      const response = await watchlist.getById(id, 10, offset)
       
       if (resetOffset) {
         setStocks(response.data.stocks)
@@ -84,7 +84,7 @@ function Watchlist() {
     
     setLoadingMore(true)
     try {
-      const response = await watchlist.getById(selectedWatchlist.id, 20, currentOffset)
+      const response = await watchlist.getById(selectedWatchlist.id, 10, currentOffset)
       
       // Append new stocks to existing list
       setStocks(prev => [...prev, ...response.data.stocks])
@@ -490,7 +490,7 @@ function Watchlist() {
                     </div>
                   )}
                   
-                  {!hasMore && stocks.length > 20 && (
+                  {!hasMore && stocks.length > 10 && (
                     <div className="load-more-container">
                       <p className="all-loaded-message">
                         ✓ All {selectedWatchlist.total_stocks} stocks loaded
