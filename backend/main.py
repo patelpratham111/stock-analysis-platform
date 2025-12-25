@@ -27,13 +27,14 @@ app = FastAPI(
 # Add GZip compression middleware for faster responses
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-# CORS
+# CORS - Allow both local development and production domains
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173", 
         "http://localhost:3000",
         "http://192.168.31.52:5173",  # Allow mobile access via local IP
+        "https://stock-analysis-platform-kappa.vercel.app",  # Production frontend
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -444,14 +445,17 @@ async def register(user: UserCreate, response: Response):
         # Generate token
         access_token = create_access_token(data={"sub": user.email})
         
+        # Detect if running in production (check for HTTPS in frontend URL)
+        is_production = settings.FRONTEND_URL.startswith("https://")
+        
         # Set HTTP-only cookie
         response.set_cookie(
             key="access_token",
             value=access_token,
             httponly=True,
             max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-            samesite="lax",
-            secure=False  # Set to True in production with HTTPS
+            samesite="none" if is_production else "lax",
+            secure=is_production
         )
         
         return {
@@ -483,14 +487,17 @@ async def login(user: UserLogin, response: Response):
     
     access_token = create_access_token(data={"sub": user.email})
     
+    # Detect if running in production (check for HTTPS in frontend URL)
+    is_production = settings.FRONTEND_URL.startswith("https://")
+    
     # Set HTTP-only cookie
     response.set_cookie(
         key="access_token",
         value=access_token,
         httponly=True,
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-        samesite="lax",
-        secure=False  # Set to True in production with HTTPS
+        samesite="none" if is_production else "lax",
+        secure=is_production
     )
     
     return {
