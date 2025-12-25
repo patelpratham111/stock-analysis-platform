@@ -23,9 +23,23 @@ function App() {
         const urlParams = new URLSearchParams(window.location.search)
         const authStatus = urlParams.get('auth')
         const authError = urlParams.get('error')
+        const tokenFromUrl = urlParams.get('token')
         
-        if (authStatus === 'success') {
-          // OAuth successful, clean URL and validate session
+        if (authStatus === 'success' && tokenFromUrl) {
+          // OAuth successful with token in URL - save token and clean URL
+          localStorage.setItem('token', tokenFromUrl)
+          window.history.replaceState({}, document.title, '/')
+          
+          // Validate the token
+          const response = await auth.getMe()
+          if (response.data.authenticated) {
+            setIsAuthenticated(true)
+            setUser(response.data)
+          }
+          setIsLoading(false)
+          return
+        } else if (authStatus === 'success') {
+          // OAuth successful via cookie, clean URL
           window.history.replaceState({}, document.title, '/')
         } else if (authError) {
           // OAuth failed, clean URL
@@ -34,7 +48,7 @@ function App() {
           return
         }
         
-        // Try to validate session with cookie
+        // Try to validate session with cookie or token
         const response = await auth.getMe()
         if (response.data.authenticated) {
           setIsAuthenticated(true)
